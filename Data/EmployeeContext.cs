@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Models;
+using File = WebApi.Models.File;
 
 namespace WebApi.Data;
 
+#pragma warning disable CS1591
 public partial class EmployeeContext : DbContext
 {
     public EmployeeContext()
@@ -71,8 +73,8 @@ public partial class EmployeeContext : DbContext
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
             entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");
-            entity.Property(e => e.Firstname).HasMaxLength(50);
-            entity.Property(e => e.Lastname).HasMaxLength(50);
+            entity.Property(e => e.FirstName).HasMaxLength(50);
+            entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.UpdateDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Department).WithMany(p => p.Employees)
@@ -105,3 +107,4 @@ public partial class EmployeeContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+#pragma warning restore CS1591

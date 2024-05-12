@@ -112,6 +112,8 @@ builder.Services.AddDbContext<EmployeeContext>(option => option.UseSqlServer(con
 
 ```cs
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+using WebApi.Data;
 
 namespace WebApi.Models
 {
@@ -120,7 +122,224 @@ namespace WebApi.Models
   [MetadataType(typeof(EmployeeMetadata))]
   public partial class Employee
   {
+    public static Employee Create(EmployeeContext db, Employee employee) { }
 
+    public static List<Employee> GetAll(EmployeeContext db) { }
+
+    public static Employee GetById(EmployeeContext db, int id) { }
+
+    public static Employee Update(EmployeeContext db, Employee employee) { }
+
+    public static Employee Delete(EmployeeContext db, int id) { }
+
+    public static List<Employee> Search(EmployeeContext db, string keyword) { }
   }
 }
+```
+
+## Controller
+
+- New C# -> Class -> EmployeeController
+
+```cs
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
+using WebApi.Data;
+using WebApi.Models;
+
+namespace WebApi.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class EmployeeController : ControllerBase
+    {
+        private EmployeeContext _db = new EmployeeContext();
+
+        private readonly ILogger<EmployeeController> _logger;
+
+        public EmployeeController(ILogger<EmployeeController> logger)
+        {
+            _logger = logger;
+        }
+
+        public struct EmployeeCreate
+        {
+            /// <summary>
+            /// Employee First Name
+            /// </summary>
+            /// <example>John</example>
+            /// <required>true</required>
+            [Required]
+            public string? FirstName { get; set; }
+
+            /// <summary>
+            /// Employee Last Name
+            /// </summary>
+            /// <example>Don</example>
+            /// <required>true</required>
+            [Required]
+            public string? LastName { get; set; }
+
+            /// <summary>
+            /// Employee Salary
+            /// </summary>
+            /// <example>25000</example>
+            /// <required>true</required>
+            [Required]
+            [Range(15000, 80000)]
+            public int? Salary { get; set; }
+
+            /// <summary>
+            /// Employee Department ID
+            /// </summary>
+            /// <example>1</example>
+            /// <required>true</required>
+            [Required]
+            [Range(1, 5)]
+            public int? DepartmentId { get; set; }
+        }
+
+        [HttpPost(Name = "CreateEmployee")]
+        public ActionResult Create(EmployeeCreate employeeCreate) { }
+
+        [HttpGet(Name = "GetAllEmployee")]
+        public ActionResult GetAll() { }
+
+        [HttpGet("{id}", Name = "GetEmployeeById")]
+        public ActionResult GetById(int id) { }
+
+        [HttpPut(Name = "UpdateEmployee")]
+        public ActionResult Update(Employee employee) { }
+
+        [HttpDelete("{id}", Name = "DeleteEmployeeById")]
+        public ActionResult DeleteById(int id) { }
+
+        [HttpGet("search/{name}", Name = "SearchEmployeeByName")]
+        public ActionResult Search(string name) { }
+
+        [HttpGet("page/{page}", Name = "GetAllEmployeeByPage")]
+        public ActionResult GetAllByPage(int page) { }
+    }
+}
+```
+
+# Generate API Spec with Swagger
+
+- API Spec เครื่องมือสำคัญที่ช่วยให้ Dev สามารถทำความเข้าใจกับการทำงานของ API ได้อย่างชัดเจน และช่วยให้สามารถสร้างและใช้งาน API ได้ถูกต้องปลอดภัย
+
+- เพิ่ม Generate ในไฟล์ WebApi/WebApi.csproj
+
+```cs
+  <PropertyGroup>
+    ...
+    ...
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+```
+
+- เพิ่ม version, title, description ของ API บนหน้า Swagger
+
+```cs
+using System.Reflection;
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Version = "v1",
+        Title = "My WebApi Project API",
+        Description = "A simple example ASP.NET Core Web API",
+    });
+
+    // สำหรับใช้งาน XML Comment
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
+```
+
+## XML Comment - Action & Response
+
+```
+        /// <summary>
+        /// Create Employee
+        /// </summary>
+        /// <param name="employee"></param>
+        /// <returns>A newly created Employee</returns>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST /api/Employee
+        ///     {
+        ///         "FirstName": "John",
+        ///         "LastName": "Don",
+        ///         "Salary": 25000,
+        ///         "DepartmentId": 1
+        ///     }
+        ///
+        /// </remarks>
+        /// <response code="201">
+        /// Success
+        /// <br/>
+        /// <br/>
+        /// Example response:
+        ///
+        ///     {
+        ///         "Code": 201,
+        ///         "Message": "Success",
+        ///         "Data": {
+        ///             "Id": 1,
+        ///             "FirstName": "John",
+        ///             "LastName": "Doe",
+        ///             "Salary": 25000,
+        ///             "DepartmentId": 1
+        ///         }
+        ///     }
+        ///
+        /// </response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="500">Internal Server Error</response>
+```
+
+### XML Comment - Attribute
+
+```cs
+        public struct EmployeeCreate
+        {
+            /// <summary>
+            /// Employee First Name
+            /// </summary>
+            /// <example>John</example>
+            /// <required>true</required>
+            [Required]
+            [RegularExpression(@"^[a-zA-Z0-9]*$")]
+            public string? FirstName { get; set; }
+
+            /// <summary>
+            /// Employee Last Name
+            /// </summary>
+            /// <example>Don</example>
+            /// <required>true</required>
+            [Required]
+            [StringLength(50)]
+            public string? LastName { get; set; }
+
+            /// <summary>
+            /// Employee Salary
+            /// </summary>
+            /// <example>25000</example>
+            /// <required>true</required>
+            [Required]
+            [Range(15000, 80000)]
+            public int? Salary { get; set; }
+
+            /// <summary>
+            /// Employee Department ID
+            /// </summary>
+            /// <example>1</example>
+            /// <required>true</required>
+            [Required]
+            [Range(1, 5)]
+            public int? DepartmentId { get; set; }
+        }
 ```
