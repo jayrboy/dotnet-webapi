@@ -59,7 +59,7 @@ namespace WebApi.Controllers
         }
 
         /// <summary>
-        /// Create Employee
+        /// Creates a Employee
         /// </summary>
         /// <param name="employee"></param>
         /// <returns>A newly created Employee</returns>
@@ -75,30 +75,13 @@ namespace WebApi.Controllers
         ///     }
         ///     
         /// </remarks>
-        /// <response code="201">
-        /// Success
-        /// <br/>
-        /// <br/>
-        /// Example response:
-        /// 
-        ///     {
-        ///         "Code": 201,
-        ///         "Message": "Success",
-        ///         "Data": {
-        ///             "Id": 1,
-        ///             "FirstName": "John",
-        ///             "LastName": "Doe",
-        ///             "Salary": 25000,
-        ///             "DepartmentId": 1
-        ///         }
-        ///     }
-        ///     
-        /// </response>
+        /// <response code="201">Returns the newly created employee</response>
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
         [HttpPost(Name = "CreateEmployee")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult Create(EmployeeCreate employeeCreate)
         {
             Employee employee = new Employee

@@ -225,6 +225,8 @@ namespace WebApi.Controllers
 
 # Generate API Spec with Swagger
 
+- https://learn.microsoft.com/th-th/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-6.0&tabs=visual-studio
+
 - API Spec เครื่องมือสำคัญที่ช่วยให้ Dev สามารถทำความเข้าใจกับการทำงานของ API ได้อย่างชัดเจน และช่วยให้สามารถสร้างและใช้งาน API ได้ถูกต้องปลอดภัย
 
 - เพิ่ม Generate ในไฟล์ WebApi/WebApi.csproj

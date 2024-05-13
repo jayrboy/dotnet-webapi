@@ -16,8 +16,8 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
         Version = "v1",
-        Title = "My First Project API",
-        Description = "A simple example ASP.NET Core Web API",
+        Title = "Web API",
+        Description = "An ASP.NET Core Web API for managing Employee Services",
     });
 
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -29,6 +29,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // UseSwaggerUI is called only in Development.
     app.UseSwagger();
     app.UseSwaggerUI();
 }
