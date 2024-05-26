@@ -1,13 +1,15 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Data;
 using WebApi.Models;
 
+
 namespace WebApi.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    [Produces("application/json")]
     public class EmployeeController : ControllerBase
     {
         private EmployeeContext _db = new EmployeeContext();
