@@ -6,7 +6,6 @@ using File = WebApi.Models.File;
 
 namespace WebApi.Data;
 
-#pragma warning disable CS1591
 public partial class EmployeeContext : DbContext
 {
     public EmployeeContext()
@@ -27,6 +26,8 @@ public partial class EmployeeContext : DbContext
     public virtual DbSet<File> Files { get; set; }
 
     public virtual DbSet<Project> Projects { get; set; }
+
+    public virtual DbSet<ProjectFile> ProjectFiles { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -102,9 +103,32 @@ public partial class EmployeeContext : DbContext
             entity.Property(e => e.UpdateDate).HasColumnType("datetime");
         });
 
+        modelBuilder.Entity<ProjectFile>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("ProjectFile");
+
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.FileId).HasColumnName("FileID");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("ID");
+            entity.Property(e => e.IsDelete).HasColumnName("isDelete");
+            entity.Property(e => e.ProjectId).HasColumnName("ProjectID");
+            entity.Property(e => e.UpdateDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.File).WithMany()
+                .HasForeignKey(d => d.FileId)
+                .HasConstraintName("FK_FileID_File");
+
+            entity.HasOne(d => d.Project).WithMany()
+                .HasForeignKey(d => d.ProjectId)
+                .HasConstraintName("FK_ProjectID_Project");
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
-#pragma warning restore CS1591
