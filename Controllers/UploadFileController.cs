@@ -11,7 +11,7 @@ namespace WebApi.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class FileController : ControllerBase
+    public class UploadFileController : ControllerBase
     {
         private EmployeeContext _db = new EmployeeContext();
 
@@ -19,7 +19,7 @@ namespace WebApi.Controllers
 
         private readonly ILogger _logger;
 
-        public FileController(ILogger<FileController> logger, IHostEnvironment environment)
+        public UploadFileController(ILogger<UploadFileController> logger, IHostEnvironment environment)
         {
             _logger = logger;
             _hostEnvironment = environment;
@@ -31,14 +31,14 @@ namespace WebApi.Controllers
             if (formFile != null)
             {
                 //ถ้ามี ข้อมูลไฟล์เข้ามา ก็สร้าง Object จากโมเดล File
-                Models.File file = new Models.File
+                UploadFile file = new UploadFile
                 {
                     FileName = formFile.FileName,
                     FilePath = "Uploaded/ProfileImg/"
                 };
 
                 // เพิ่มเข้าฐานข้อมูลเพื่อเอา "ID"
-                file = Models.File.Create(_db, file);
+                file = Models.UploadFile.Create(_db, file);
 
                 // เอา "ID" มากำหนดเป็นชื่อ "โฟลเดอร์"
                 string uploads = Path.Combine(_hostEnvironment.ContentRootPath, "Uploaded/ProfileImg/" + file.Id);
@@ -48,7 +48,7 @@ namespace WebApi.Controllers
 
                 string filePath = Path.Combine(uploads, formFile.FileName);
 
-                using (Stream stream = new FileStream(filePath, FileMode.Create))
+                using (FileStream stream = new FileStream(filePath, FileMode.Create))
                 {
                     formFile.CopyTo(stream);
                 }
@@ -77,14 +77,14 @@ namespace WebApi.Controllers
             {
                 foreach (IFormFile f in formFiles)
                 {
-                    Models.File file = new Models.File
+                    UploadFile file = new UploadFile
                     {
                         FileName = f.FileName,
                         FilePath = "Uploaded/ProfileImg/"
                     };
 
                     // Add to the database to get the "ID"
-                    file = Models.File.Create(_db, file);
+                    file = Models.UploadFile.Create(_db, file);
 
                     if (f != null && f.Length > 0)
                     {

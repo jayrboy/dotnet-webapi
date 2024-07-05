@@ -21,7 +21,7 @@ touch .gitignore README.md
 ```bash
 git init
 git add .
-git commit -m "first commit"
+git commit -m "Initial commit"
 git branch -M main
 git remote add origin https://github.com/jayrboy/dotnet-webapi.git
 git push -u origin main
@@ -29,7 +29,7 @@ git push -u origin main
 
 # SQL Server Management Studio
 
-1. Create the database
+1. Create The Database
 
 - Database name: Employee
 - Options -> Collation: Thai_CI_AS
@@ -52,7 +52,7 @@ UpdateDate; datetime; true
 dotnet tool install --global dotnet-ef --version 8.*
 ```
 
-- เพิ่ม InvariantGlobalization เป็น false ที่ไฟล์ WebApi/WebApi.csproj
+- เพิ่ม InvariantGlobalization เป็น false ที่ไฟล์ WebApi.csproj
 
 ```cs
 <PropertyGroup>
@@ -82,12 +82,18 @@ dotnet add package Microsoft.EntityFrameworkCore.Tools
 dotnet add package Microsoft.EntityFrameworkCore.Design
 ```
 
+- Data Source=BUMBIM\SQLEXPRESS เอามาจาก SSMS
+
 ```bash
 dotnet ef dbcontext scaffold "Data Source=BUMBIM\SQLEXPRESS;Initial Catalog=Employee;Integrated Security=True;Encrypt=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer --context-dir Data --output-dir Models --force
 ```
 
+```bash
+dotnet ef dbcontext scaffold "Data Source=BUMBIM\SQLEXPRESS;Initial Catalog=Employee;Integrated Security=True;Encrypt=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer --context-dir Data -o Models -f
+```
+
 - หากสำเร็จจะมีข้อมูล Table EmployeeContext จาก Database อยู่ใน Folder Data
-- และมี Model ทำหน้าที่จัดเตรยมข้อมูล เพื่อนำไปใช้
+- Model ทำหน้าที่จัดเตรียมข้อมูล เพื่อนำไปใช้
   - Data Logic
   - เป็นอิสระ ไม่ถูกกระทบจาก Controller
   - ตัวอย่าง: การเช็ค User ซ้ำใน Model User ควรอยู่ใน Model เมื่อนำไปใช้กับ Project อื่นก็ยังมีการเช็ค user ซ้ำได้เหมือนกัน ไม่ขึ้นกับ Controller
@@ -101,9 +107,9 @@ using WebApi.Data;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
-// Connect SQL Server Management Studio
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<EmployeeContext>(option => option.UseSqlServer(connectionString));
+//TODO: Connect SQL Server Management Studio
+builder.Services.AddDbContext<EmployeeContext>(option =>
+  option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection");));
 ```
 
 ## Metadata file
@@ -221,127 +227,4 @@ namespace WebApi.Controllers
         public ActionResult GetAllByPage(int page) { }
     }
 }
-```
-
-# Generate API Spec with Swagger
-
-- https://learn.microsoft.com/th-th/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-6.0&tabs=visual-studio
-
-- API Spec เครื่องมือสำคัญที่ช่วยให้ Dev สามารถทำความเข้าใจกับการทำงานของ API ได้อย่างชัดเจน และช่วยให้สามารถสร้างและใช้งาน API ได้ถูกต้องปลอดภัย
-
-- เพิ่ม Generate ในไฟล์ WebApi/WebApi.csproj
-
-```cs
-  <PropertyGroup>
-    ...
-    ...
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
-  </PropertyGroup>
-```
-
-- เพิ่ม version, title, description ของ API บนหน้า Swagger
-
-```cs
-using System.Reflection;
-
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-    {
-        Version = "v1",
-        Title = "My WebApi Project API",
-        Description = "A simple example ASP.NET Core Web API",
-    });
-
-    // สำหรับใช้งาน XML Comment
-    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-});
-```
-
-## XML Comment - Action & Response
-
-```
-        /// <summary>
-        /// Create Employee
-        /// </summary>
-        /// <param name="employee"></param>
-        /// <returns>A newly created Employee</returns>
-        /// <remarks>
-        /// Sample request:
-        ///
-        ///     POST /api/Employee
-        ///     {
-        ///         "FirstName": "John",
-        ///         "LastName": "Don",
-        ///         "Salary": 25000,
-        ///         "DepartmentId": 1
-        ///     }
-        ///
-        /// </remarks>
-        /// <response code="201">
-        /// Success
-        /// <br/>
-        /// <br/>
-        /// Example response:
-        ///
-        ///     {
-        ///         "Code": 201,
-        ///         "Message": "Success",
-        ///         "Data": {
-        ///             "Id": 1,
-        ///             "FirstName": "John",
-        ///             "LastName": "Doe",
-        ///             "Salary": 25000,
-        ///             "DepartmentId": 1
-        ///         }
-        ///     }
-        ///
-        /// </response>
-        /// <response code="400">Bad Request</response>
-        /// <response code="500">Internal Server Error</response>
-```
-
-### XML Comment - Attribute
-
-```cs
-        public struct EmployeeCreate
-        {
-            /// <summary>
-            /// Employee First Name
-            /// </summary>
-            /// <example>John</example>
-            /// <required>true</required>
-            [Required]
-            [RegularExpression(@"^[a-zA-Z0-9]*$")]
-            public string? FirstName { get; set; }
-
-            /// <summary>
-            /// Employee Last Name
-            /// </summary>
-            /// <example>Don</example>
-            /// <required>true</required>
-            [Required]
-            [StringLength(50)]
-            public string? LastName { get; set; }
-
-            /// <summary>
-            /// Employee Salary
-            /// </summary>
-            /// <example>25000</example>
-            /// <required>true</required>
-            [Required]
-            [Range(15000, 80000)]
-            public int? Salary { get; set; }
-
-            /// <summary>
-            /// Employee Department ID
-            /// </summary>
-            /// <example>1</example>
-            /// <required>true</required>
-            [Required]
-            [Range(1, 5)]
-            public int? DepartmentId { get; set; }
-        }
 ```

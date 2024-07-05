@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Data;
+using WebApi.Dtos.Employee;
 using WebApi.Models;
 
 
@@ -19,45 +20,6 @@ namespace WebApi.Controllers
         public EmployeeController(ILogger<EmployeeController> logger)
         {
             _logger = logger;
-        }
-
-        public struct EmployeeCreate
-        {
-            /// <summary>
-            /// Employee First Name
-            /// </summary>
-            /// <example>John</example>
-            /// <required>true</required>
-            [Required]
-            [RegularExpression(@"^[a-zA-Z0-9]*$")]
-            public string? FirstName { get; set; }
-
-            /// <summary>
-            /// Employee Last Name
-            /// </summary>
-            /// <example>Don</example>
-            /// <required>true</required>
-            [Required]
-            [StringLength(50)]
-            public string? LastName { get; set; }
-
-            /// <summary>
-            /// Employee Salary
-            /// </summary>
-            /// <example>25000</example>
-            /// <required>true</required>
-            [Required]
-            [Range(15000, 80000)]
-            public int? Salary { get; set; }
-
-            /// <summary>
-            /// Employee Department ID
-            /// </summary>
-            /// <example>1</example>
-            /// <required>true</required>
-            [Required]
-            [Range(1, 5)]
-            public int? DepartmentId { get; set; }
         }
 
         /// <summary>
@@ -81,17 +43,14 @@ namespace WebApi.Controllers
         /// <response code="400">Bad Request</response>
         /// <response code="500">Internal Server Error</response>
         [HttpPost(Name = "CreateEmployee")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult Create(EmployeeCreate employeeCreate)
+        public ActionResult Create(EmployeeRequestDTO employeeRequest)
         {
             Employee employee = new Employee
             {
-                FirstName = employeeCreate.FirstName,
-                LastName = employeeCreate.LastName,
-                Salary = employeeCreate.Salary,
-                DepartmentId = employeeCreate.DepartmentId
+                FirstName = employeeRequest.FirstName,
+                LastName = employeeRequest.LastName,
+                Salary = employeeRequest.Salary,
+                DepartmentId = employeeRequest.DepartmentId
             };
 
             employee = Employee.Create(_db, employee);
@@ -136,9 +95,9 @@ namespace WebApi.Controllers
             bool employeeExists = _db.Employees.Any(e => e.Id == employee.Id && e.IsDelete != true);
             if (!employeeExists)
             {
-                return BadRequest(new Response
+                return NotFound(new Response
                 {
-                    Status = 400,
+                    Status = 404,
                     Message = "Employee not found",
                     Data = null
                 });

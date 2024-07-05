@@ -69,6 +69,17 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+//TODO: Add CORS Policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AngularApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200", "https://www.example.com")
+              .WithHeaders("Content-Type", "Authorization")
+              .WithMethods("POST", "GET", "PUT", "DELETE");
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -80,9 +91,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AngularApp");  //TODO: Enable CORS middleware
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

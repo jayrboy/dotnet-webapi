@@ -7,20 +7,20 @@ using WebApi.Data;
 
 namespace WebApi.Models
 {
-    public class FileMetadata { }
+    public class UploadFileMetadata { }
 
-    [MetadataType(typeof(FileMetadata))]
-    public partial class File
+    [MetadataType(typeof(UploadFileMetadata))]
+    public partial class UploadFile
     {
         // [NotMapped]
         // public File? File { get; set; }
 
-        public static File Create(EmployeeContext db, File file)
+        public static UploadFile Create(EmployeeContext db, UploadFile file)
         {
             file.CreateDate = DateTime.Now;
             file.UpdateDate = DateTime.Now;
             file.IsDelete = false;
-            db.Files.Add(file);
+            db.UploadFiles.Add(file);
             db.SaveChanges();
 
             return file;

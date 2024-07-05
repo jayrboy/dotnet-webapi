@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Models;
-using File = WebApi.Models.File;
 
 namespace WebApi.Data;
 
@@ -23,11 +22,13 @@ public partial class EmployeeContext : DbContext
 
     public virtual DbSet<Employee> Employees { get; set; }
 
-    public virtual DbSet<File> Files { get; set; }
-
     public virtual DbSet<Project> Projects { get; set; }
 
-    public virtual DbSet<ProjectFile> ProjectFiles { get; set; }
+    public virtual DbSet<ProjectUploadFile> ProjectUploadFiles { get; set; }
+
+    public virtual DbSet<UploadFile> UploadFiles { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
@@ -83,16 +84,6 @@ public partial class EmployeeContext : DbContext
                 .HasConstraintName("FK_Employee_Department");
         });
 
-        modelBuilder.Entity<File>(entity =>
-        {
-            entity.ToTable("File");
-
-            entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.CreateDate).HasColumnType("datetime");
-            entity.Property(e => e.FileName).HasMaxLength(50);
-            entity.Property(e => e.UpdateDate).HasColumnType("datetime");
-        });
-
         modelBuilder.Entity<Project>(entity =>
         {
             entity.ToTable("Project");
@@ -103,11 +94,11 @@ public partial class EmployeeContext : DbContext
             entity.Property(e => e.UpdateDate).HasColumnType("datetime");
         });
 
-        modelBuilder.Entity<ProjectFile>(entity =>
+        modelBuilder.Entity<ProjectUploadFile>(entity =>
         {
             entity
                 .HasNoKey()
-                .ToTable("ProjectFile");
+                .ToTable("ProjectUploadFile");
 
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
             entity.Property(e => e.FileId).HasColumnName("FileID");
@@ -125,6 +116,36 @@ public partial class EmployeeContext : DbContext
             entity.HasOne(d => d.Project).WithMany()
                 .HasForeignKey(d => d.ProjectId)
                 .HasConstraintName("FK_ProjectID_Project");
+        });
+
+        modelBuilder.Entity<UploadFile>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_File");
+
+            entity.ToTable("UploadFile");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.FileName).HasMaxLength(50);
+            entity.Property(e => e.UpdateDate).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("User");
+
+            entity.HasIndex(e => e.Username, "Username_Unique").IsUnique();
+
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("ID");
+            entity.Property(e => e.Password).HasMaxLength(50);
+            entity.Property(e => e.Role).HasMaxLength(50);
+            entity.Property(e => e.UpdateDate).HasColumnType("datetime");
+            entity.Property(e => e.Username).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);
