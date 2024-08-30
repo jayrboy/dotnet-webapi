@@ -32,7 +32,7 @@ public partial class EmployeeContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=BUMBIM\\SQLEXPRESS;Initial Catalog=Employee;Integrated Security=True;Encrypt=True;TrustServerCertificate=True");
+        => optionsBuilder.UseSqlServer("Data Source=.\\SQLExpress;Initial Catalog=Employee;Integrated Security=True;Encrypt=True;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,21 +101,20 @@ public partial class EmployeeContext : DbContext
                 .ToTable("ProjectUploadFile");
 
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
-            entity.Property(e => e.FileId).HasColumnName("FileID");
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("ID");
-            entity.Property(e => e.IsDelete).HasColumnName("isDelete");
             entity.Property(e => e.ProjectId).HasColumnName("ProjectID");
             entity.Property(e => e.UpdateDate).HasColumnType("datetime");
-
-            entity.HasOne(d => d.File).WithMany()
-                .HasForeignKey(d => d.FileId)
-                .HasConstraintName("FK_FileID_File");
+            entity.Property(e => e.UploadFileId).HasColumnName("UploadFileID");
 
             entity.HasOne(d => d.Project).WithMany()
                 .HasForeignKey(d => d.ProjectId)
                 .HasConstraintName("FK_ProjectID_Project");
+
+            entity.HasOne(d => d.UploadFile).WithMany()
+                .HasForeignKey(d => d.UploadFileId)
+                .HasConstraintName("FK_FileID_File");
         });
 
         modelBuilder.Entity<UploadFile>(entity =>
@@ -132,9 +131,7 @@ public partial class EmployeeContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("User");
+            entity.HasNoKey();
 
             entity.HasIndex(e => e.Username, "Username_Unique").IsUnique();
 

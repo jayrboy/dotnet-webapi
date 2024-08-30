@@ -82,14 +82,14 @@ dotnet add package Microsoft.EntityFrameworkCore.Tools
 dotnet add package Microsoft.EntityFrameworkCore.Design
 ```
 
-- Data Source=BUMBIM\SQLEXPRESS เอามาจาก SSMS
+- Data Source=.\SQLExpress เอามาจาก SSMS
 
 ```bash
-dotnet ef dbcontext scaffold "Data Source=BUMBIM\SQLEXPRESS;Initial Catalog=Employee;Integrated Security=True;Encrypt=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer --context-dir Data --output-dir Models --force
+dotnet ef dbcontext scaffold "Data Source=.\SQLExpress;Initial Catalog=Employee;Integrated Security=True;Encrypt=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer --context-dir Data --output-dir Models --force
 ```
 
 ```bash
-dotnet ef dbcontext scaffold "Data Source=BUMBIM\SQLEXPRESS;Initial Catalog=Employee;Integrated Security=True;Encrypt=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer --context-dir Data -o Models -f
+dotnet ef dbcontext scaffold "Data Source=.\SQLExpress;Initial Catalog=Employee;Integrated Security=True;Encrypt=True;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer --context-dir Data -o Models -f
 ```
 
 - หากสำเร็จจะมีข้อมูล Table EmployeeContext จาก Database อยู่ใน Folder Data

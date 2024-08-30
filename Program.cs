@@ -75,8 +75,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AngularApp", policy =>
     {
         policy.WithOrigins("http://localhost:4200", "https://www.example.com")
-              .WithHeaders("Content-Type", "Authorization")
-              .WithMethods("POST", "GET", "PUT", "DELETE");
+              .WithHeaders("Cross-Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With")
+              .WithMethods("POST", "GET", "PUT", "PATCH", "DELETE");
     });
 });
 
