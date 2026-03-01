@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace WebApi.Models.Entities;
+namespace WebApi.Models.DTOs;
 
 public partial class Response
 {
