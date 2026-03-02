@@ -14,26 +14,13 @@ namespace WebApi.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 
-public class AuthController : ControllerBase
+public class AuthController(MyDbContext db, IPasswordHasher<User> hasher, IConfiguration config) : ControllerBase
 {
-    private MyDbContext _db;
-
-    private readonly IPasswordHasher<User> _hasher;
-
-    private readonly IConfiguration _config;
-
-    public AuthController(MyDbContext db, IPasswordHasher<User> hasher, IConfiguration config)
-    {
-        _db = db;
-        _hasher = hasher;
-        _config = config;
-    }
-
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         // 1) check duplicate
-        var exists = await _db.Users.Where(u => u.Username == request.Username).FirstOrDefaultAsync();
+        var exists = await db.Users.Where(u => u.Username == request.Username).FirstOrDefaultAsync();
         if (exists is not null)
         {
             return Conflict(new Response
@@ -57,12 +44,12 @@ public class AuthController : ControllerBase
         };
 
         // 🔐 เก็บเป็น hash
-        user.PasswordHash = _hasher.HashPassword(user, request.Password);
+        user.PasswordHash = hasher.HashPassword(user, request.Password);
 
         try
         {
-            _db.Users.Add(user);
-            _db.SaveChanges();
+            db.Users.Add(user);
+            db.SaveChanges();
         }
         catch (DbUpdateException)
         {
@@ -93,7 +80,7 @@ public class AuthController : ControllerBase
     public string GenerateToken([FromBody] User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_config["Jwt:Secret"]!);
+        var key = Encoding.UTF8.GetBytes(config["Jwt:Secret"]!);
         var claims = new List<Claim>
         {
             // Add more claims as needed
@@ -105,10 +92,10 @@ public class AuthController : ControllerBase
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(
-                Convert.ToDouble(_config["Jwt:ExpiryMinutes"])
+                Convert.ToDouble(config["Jwt:ExpiryMinutes"])
             ),
-            Issuer = _config["Jwt:Issuer"],
-            Audience = _config["Jwt:Audience"],
+            Issuer = config["Jwt:Issuer"],
+            Audience = config["Jwt:Audience"],
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -127,7 +114,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        User? user = _db.Users.Where(u => u.Username == request.Username).FirstOrDefault();
+        User? user = db.Users.Where(u => u.Username == request.Username).FirstOrDefault();
 
         if (user is null)
         {
@@ -138,7 +125,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        var result = _hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+        var result = hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
         if (result == PasswordVerificationResult.Failed)
         {
