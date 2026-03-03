@@ -1,14 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.OpenApi;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
 using System.Text;
-using System.Text.Json.Serialization;
-using Scalar.AspNetCore;
 using WebApi.Data;
 using WebApi.Models.Entities;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,14 +17,22 @@ builder.Services.AddDbContext<MyDbContext>(options => options.UseSqlServer(build
 
 builder.Services.AddControllers();
 
-// (2) Add Authorization - Jwt
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+// (2) Add Scalar UI - OpenApi
+// https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/customize-openapi?view=aspnetcore-10.0
+// builder.Services.AddOpenApi();
+builder.Services.AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
+
+// (3) Add Authorization - Jwt
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
@@ -35,15 +41,9 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
-        ValidateIssuerSigningKey = true
+        ValidateIssuerSigningKey = true,
     };
 });
-
-// (3) Add Scalar UI - OpenApi
-// https://learn.microsoft.com/en-us/aspnet/core/fundamentals/openapi/customize-openapi?view=aspnetcore-10.0
-builder.Services.AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
-
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 var app = builder.Build();
 
@@ -51,11 +51,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    // (3.1) Add Scalar UI - OpenApi - Enable Persistent JWT Authentication
+    // (4) Add Scalar UI - OpenApi - Enable Persistent JWT Authentication
     app.MapScalarApiReference(options =>
     {
         options.Title = "My Scalar UI, Web API";
-        options.DarkMode = true;
+        options.Theme = ScalarTheme.BluePlanet;
+        // options.DarkMode = false;
         options.DefaultHttpClient = new(ScalarTarget.CSharp, ScalarClient.HttpClient);
         options.CustomCss = "";
         options.AddPreferredSecuritySchemes("Bearer").EnablePersistentAuthentication();

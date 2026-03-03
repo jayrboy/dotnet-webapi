@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Data;
+using WebApi.Models;
 using WebApi.Models.Entities;
 using WebApi.Models.DTOs;
 
@@ -17,7 +18,7 @@ namespace WebApi.Controllers;
 public class AuthController(MyDbContext db, IPasswordHasher<User> hasher, IConfiguration config) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<ActionResult<Response>> Register([FromBody] RegisterRequest request)
     {
         // 1) check duplicate
         var exists = await db.Users.Where(u => u.Username == request.Username).FirstOrDefaultAsync();
@@ -76,43 +77,30 @@ public class AuthController(MyDbContext db, IPasswordHasher<User> hasher, IConfi
         });
     }
 
-    [HttpPost("token")]
-    public string GenerateToken([FromBody] User user)
+    private string GenerateToken(User user)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(config["Jwt:Secret"]!);
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Secret"]!));
+        var expiryMinutes = Convert.ToDouble(config["Jwt:ExpiryMinutes"]!);
         var claims = new List<Claim>
         {
-            // Add more claims as needed
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Role, user.Role)
 
         };
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(
-                Convert.ToDouble(config["Jwt:ExpiryMinutes"])
-            ),
-            Issuer = config["Jwt:Issuer"],
-            Audience = config["Jwt:Audience"],
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-
-        if (token != null)
-        {
-            var jwt = tokenHandler.WriteToken(token);
-            return jwt;
-        }
-        else
-        {
-            return "Token is required";
-        }
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
+        var token = new JwtSecurityToken(
+            issuer: config["Jwt:Issuer"],
+            audience: config["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
+            signingCredentials: credentials
+        );
+        
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<Response>> Login([FromBody] LoginRequest request)
     {
         User? user = db.Users.Where(u => u.Username == request.Username).FirstOrDefault();
 
