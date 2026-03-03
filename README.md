@@ -32,3 +32,17 @@ ActionResult<T>
 - Legacy code
 
 ### Jwt Auth in Scalar UI
+
+### Migration
+
+- Initial in Application
+
+```bash
+$ dotnet ef migrations add InitialMigration -o Data/Migrations  
+```
+
+- Run Migration SQL Server
+
+```bash
+$ dotnet ef database update
+```
